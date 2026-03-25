@@ -194,6 +194,172 @@
 
     .new-chat-btn:active { transform: translateY(0); }
 
+    /* ── Shardeum Wallet ── */
+    .wallet-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      border-radius: 100px;
+      border: 1px solid rgba(99,204,176,0.4);
+      background: rgba(99,204,176,0.06);
+      color: #63ccb0;
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+    .wallet-btn:hover {
+      background: rgba(99,204,176,0.14);
+      border-color: rgba(99,204,176,0.7);
+      box-shadow: 0 0 18px rgba(99,204,176,0.15);
+      transform: translateY(-1px);
+    }
+    .wallet-btn.connected {
+      border-color: rgba(74,222,128,0.5);
+      background: rgba(74,222,128,0.07);
+      color: #4ade80;
+    }
+    .wallet-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #63ccb0; flex-shrink: 0;
+    }
+    .wallet-btn.connected .wallet-dot {
+      background: #4ade80;
+      box-shadow: 0 0 6px #4ade80;
+      animation: pulse 2s infinite;
+    }
+    .wallet-balance {
+      font-size: 10px;
+      color: rgba(74,222,128,0.75);
+      letter-spacing: 0.3px;
+      display: none;
+    }
+    .save-chain-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 8px;
+      padding: 5px 12px;
+      border-radius: 100px;
+      border: 1px solid rgba(99,204,176,0.35);
+      background: rgba(99,204,176,0.06);
+      color: #63ccb0;
+      font-size: 11px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .save-chain-btn:hover {
+      background: rgba(99,204,176,0.15);
+      border-color: rgba(99,204,176,0.6);
+    }
+    .save-chain-btn.saved {
+      color: #4ade80;
+      border-color: rgba(74,222,128,0.5);
+      cursor: default;
+    }
+    /* ── Chain Log Panel ── */
+    .chain-log-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px 8px;
+      font-size: 11px; font-weight: 600; color: #63ccb0;
+      letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .chain-log-clear {
+      background: none; border: 1px solid rgba(248,113,113,0.3);
+      color: #f87171; border-radius: 6px; padding: 2px 8px;
+      font-size: 10px; cursor: pointer; transition: all 0.2s;
+    }
+    .chain-log-clear:hover { background: rgba(248,113,113,0.1); }
+    .chain-log-list {
+      flex: 1; overflow-y: auto; padding: 4px 8px 12px;
+    }
+    .chain-log-empty {
+      text-align: center; padding: 28px 12px;
+      color: var(--text-muted); font-size: 11px; line-height: 1.8;
+    }
+    .chain-log-item {
+      background: rgba(99,204,176,0.05);
+      border: 1px solid rgba(99,204,176,0.15);
+      border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+    }
+    .chain-log-item-hash {
+      font-family: monospace; font-size: 10px; color: #63ccb0;
+      word-break: break-all; margin-bottom: 5px;
+    }
+    .chain-log-item-hash a {
+      color: #63ccb0; text-decoration: none;
+      border-bottom: 1px solid rgba(99,204,176,0.35);
+    }
+    .chain-log-item-hash a:hover { color: #4ade80; }
+    .chain-log-item-text {
+      font-size: 11px; color: var(--text-secondary);
+      line-height: 1.5; margin-bottom: 4px;
+      display: -webkit-box; -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .chain-log-item-time {
+      font-size: 10px; color: var(--text-muted);
+    }
+
+    .shardeum-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+    }
+    .shardeum-modal.show { display: flex; }
+    .shardeum-modal-box {
+      background: #13131f;
+      border: 1px solid rgba(99,204,176,0.3);
+      border-radius: 18px;
+      padding: 32px;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 0 60px rgba(99,204,176,0.1);
+    }
+    .shardeum-modal-box h3 {
+      font-family: 'Cinzel', serif;
+      color: #63ccb0;
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+    }
+    .shardeum-modal-box p {
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .shardeum-tx-link {
+      display: inline-block;
+      margin-top: 12px;
+      color: #63ccb0;
+      font-size: 12px;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(99,204,176,0.4);
+    }
+    .modal-close-btn {
+      padding: 8px 24px;
+      border-radius: 100px;
+      border: 1px solid rgba(99,204,176,0.4);
+      background: transparent;
+      color: #63ccb0;
+      cursor: pointer;
+      font-size: 12px;
+      margin-top: 16px;
+      transition: all 0.2s;
+    }
+    .modal-close-btn:hover { background: rgba(99,204,176,0.1); }
+
     /* ── Layout ── */
     .main-layout {
       display: flex;
@@ -1025,11 +1191,26 @@
       <div class="status-dot checking" id="statusDot"></div>
       <span id="statusText">Connecting...</span>
     </div>
+    <span class="wallet-balance" id="walletBalance"></span>
+    <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">
+      <span class="wallet-dot"></span>Connect Wallet
+    </button>
     <button class="new-chat-btn" onclick="newChat()">
       ✦ New Chat
     </button>
   </div>
 </header>
+
+<!-- Shardeum Modal -->
+<div class="shardeum-modal" id="shardeumModal">
+  <div class="shardeum-modal-box">
+    <h3>⛓ Wisdom Saved on Shardeum</h3>
+    <p id="shardeumModalMsg">Your wisdom has been recorded on the Shardeum blockchain.</p>
+    <a id="shardeumTxLink" class="shardeum-tx-link" href="#" target="_blank">View on Explorer ↗</a>
+    <br>
+    <button class="modal-close-btn" onclick="document.getElementById('shardeumModal').classList.remove('show')">Close</button>
+  </div>
+</div>
 
 <!-- Main Layout -->
 <div class="main-layout">
@@ -1041,6 +1222,7 @@
     <div class="sidebar-tabs">
       <button class="sidebar-tab active" id="tab-history" onclick="switchSidebarTab('history')">History</button>
       <button class="sidebar-tab" id="tab-explore" onclick="switchSidebarTab('explore')">Explore</button>
+      <button class="sidebar-tab" id="tab-chain" onclick="switchSidebarTab('chain')">⛓ Chain</button>
     </div>
 
     <!-- History Panel -->
@@ -1125,6 +1307,17 @@
         <!-- African -->
         <span class="lang-tag">Swahili</span>
         <span class="lang-tag">አማርኛ</span>
+      </div>
+    </div>
+
+    <!-- Chain Log Panel -->
+    <div class="sidebar-panel hidden" id="panel-chain">
+      <div class="chain-log-header">
+        <span>Shardeum Transaction Log</span>
+        <button type="button" class="chain-log-clear" onclick="clearChainLog()">Clear</button>
+      </div>
+      <div class="chain-log-list" id="chainLogList">
+        <div class="chain-log-empty">No transactions yet.<br>Connect wallet &amp; save wisdom to chain.</div>
       </div>
     </div>
   </aside>
@@ -1398,7 +1591,7 @@
       const translationBadge = translated
         ? `<span class="translation-badge">🔄 Translated from ${langName}</span>`
         : '';
-      meta.innerHTML = `<span class="lang-badge">🌐 ${langName}</span>${translationBadge}<span class="time-label">${time}</span><button class="listen-btn" id="listen-btn-${groupId}" onclick="toggleListen('${groupId}')">🎧 Hear</button>`;
+      meta.innerHTML = `<span class="lang-badge">🌐 ${langName}</span>${translationBadge}<span class="time-label">${time}</span><button class="listen-btn" id="listen-btn-${groupId}" onclick="toggleListen('${groupId}')">🎧 Hear</button><button type="button" class="save-chain-btn" id="chain-btn-${groupId}" onclick="saveWisdomToChain(document.getElementById('bubble-${groupId}').innerText, this)">⛓ Save to Chain</button>`;
     }
 
     // Save to current chat messages
@@ -1567,10 +1760,11 @@
 
   // ── Sidebar tabs ──
   function switchSidebarTab(tab) {
-    document.getElementById('panel-history').classList.toggle('hidden', tab !== 'history');
-    document.getElementById('panel-explore').classList.toggle('hidden', tab !== 'explore');
-    document.getElementById('tab-history').classList.toggle('active', tab === 'history');
-    document.getElementById('tab-explore').classList.toggle('active', tab === 'explore');
+    ['history', 'explore', 'chain'].forEach(t => {
+      document.getElementById('panel-' + t).classList.toggle('hidden', tab !== t);
+      document.getElementById('tab-' + t).classList.toggle('active', tab === t);
+    });
+    if (tab === 'chain') renderChainLog();
   }
 
   // ── Verse of the Day ──
@@ -1908,7 +2102,182 @@
   displayVerseOfDay();
   initVoice();
   renderChatHistory();
+  renderChainLog();
   document.getElementById('messageInput').focus();
+
+  // ── Shardeum Blockchain Integration ──
+  const SHARDEUM_CHAIN = {
+    chainId: '0x1F92', // 8082
+    chainName: 'Shardeum Sphinx 1.X',
+    nativeCurrency: { name: 'Shardeum', symbol: 'SHM', decimals: 18 },
+    rpcUrls: ['https://sphinx.shardeum.org/'],
+    blockExplorerUrls: ['https://explorer-sphinx.shardeum.org/'],
+  };
+
+  let walletAddress = null;
+
+  async function connectWallet() {
+    if (!window.ethereum) {
+      showToast('Please install MetaMask to connect your wallet!', '🦊');
+      return;
+    }
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      walletAddress = accounts[0];
+      await switchToShardeum();
+      updateWalletUI();
+      await fetchSHMBalance();
+      showToast('Wallet connected to Shardeum!', '⛓');
+    } catch (e) {
+      if (e.code !== 4001) showToast('Connection failed: ' + e.message, '❌');
+    }
+  }
+
+  async function switchToShardeum() {
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: SHARDEUM_CHAIN.chainId }],
+      });
+    } catch (e) {
+      if (e.code === 4902) {
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [SHARDEUM_CHAIN],
+        });
+      }
+    }
+  }
+
+  async function fetchSHMBalance() {
+    if (!walletAddress) return;
+    try {
+      const balance = await window.ethereum.request({
+        method: 'eth_getBalance',
+        params: [walletAddress, 'latest'],
+      });
+      const shm = (parseInt(balance, 16) / 1e18).toFixed(3);
+      const el = document.getElementById('walletBalance');
+      el.textContent = shm + ' SHM';
+      el.style.display = 'inline';
+    } catch {}
+  }
+
+  function updateWalletUI() {
+    const btn = document.getElementById('walletBtn');
+    const short = walletAddress.slice(0, 6) + '...' + walletAddress.slice(-4);
+    btn.innerHTML = '<span class="wallet-dot"></span>' + short;
+    btn.classList.add('connected');
+  }
+
+  async function saveWisdomToChain(text, btnEl) {
+    if (!walletAddress) {
+      showToast('Connect your wallet first!', '🔗');
+      await connectWallet();
+      if (!walletAddress) return;
+    }
+    try {
+      btnEl.textContent = '⏳ Sending...';
+      btnEl.disabled = true;
+
+      // Encode wisdom text as hex for tx data field
+      const wisdom = '🕉 VedantAI: ' + text.trim().slice(0, 180);
+      const dataBytes = new TextEncoder().encode(wisdom);
+      const dataHex = '0x' + Array.from(dataBytes)
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+
+      // Gas: 21000 base + 68 per non-zero data byte
+      const gasEstimate = 21000 + dataBytes.length * 68;
+      const gasHex = '0x' + Math.ceil(gasEstimate * 1.2).toString(16); // +20% buffer
+
+      const txHash = await window.ethereum.request({
+        method: 'eth_sendTransaction',
+        params: [{
+          from: walletAddress,
+          to: walletAddress,
+          value: '0x0',
+          data: dataHex,
+          gas: gasHex,
+          gasPrice: '0x3B9ACA00', // 1 Gwei — low fee on Shardeum
+        }],
+      });
+
+      btnEl.textContent = '✓ Saved';
+      btnEl.classList.add('saved');
+
+      // Save to local log
+      addChainLog({ txHash, wisdom: text.trim().slice(0, 120), time: new Date().toISOString() });
+
+      const explorerUrl = 'https://explorer-sphinx.shardeum.org/transaction/' + txHash;
+      const modal = document.getElementById('shardeumModal');
+      document.getElementById('shardeumModalMsg').textContent =
+        'Wisdom recorded on-chain!\nTx: ' + txHash.slice(0, 14) + '...' + txHash.slice(-6);
+      const txLink = document.getElementById('shardeumTxLink');
+      txLink.href = explorerUrl;
+      txLink.textContent = 'View Transaction ↗';
+      modal.classList.add('show');
+      showToast('Transaction confirmed on Shardeum!', '⛓');
+    } catch (e) {
+      btnEl.textContent = '⛓ Save to Chain';
+      btnEl.disabled = false;
+      if (e.code !== 4001) showToast('Tx failed: ' + (e.message || e), '❌');
+    }
+  }
+
+  function addChainLog(entry) {
+    const logs = JSON.parse(localStorage.getItem('vedant_chain_log') || '[]');
+    logs.unshift(entry);
+    if (logs.length > 50) logs.splice(50);
+    localStorage.setItem('vedant_chain_log', JSON.stringify(logs));
+    renderChainLog();
+  }
+
+  function renderChainLog() {
+    const logs = JSON.parse(localStorage.getItem('vedant_chain_log') || '[]');
+    const el = document.getElementById('chainLogList');
+    if (!el) return;
+    if (!logs.length) {
+      el.innerHTML = '<div class="chain-log-empty">No transactions yet.<br>Connect wallet &amp; save wisdom to chain.</div>';
+      return;
+    }
+    el.innerHTML = logs.map(log => {
+      const explorerUrl = 'https://explorer-sphinx.shardeum.org/transaction/' + log.txHash;
+      const shortHash = log.txHash.slice(0, 10) + '...' + log.txHash.slice(-6);
+      const d = new Date(log.time);
+      const timeStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return `<div class="chain-log-item">
+        <div class="chain-log-item-hash"><a href="${explorerUrl}" target="_blank">${shortHash}</a></div>
+        <div class="chain-log-item-text">${escapeHtml(log.wisdom)}</div>
+        <div class="chain-log-item-time">${timeStr}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function clearChainLog() {
+    localStorage.removeItem('vedant_chain_log');
+    renderChainLog();
+  }
+
+  // Auto-reconnect if already connected
+  if (window.ethereum) {
+    window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
+      if (accounts.length) {
+        walletAddress = accounts[0];
+        updateWalletUI();
+        fetchSHMBalance();
+      }
+    });
+    window.ethereum.on('accountsChanged', accounts => {
+      walletAddress = accounts[0] || null;
+      if (walletAddress) { updateWalletUI(); fetchSHMBalance(); }
+      else {
+        const btn = document.getElementById('walletBtn');
+        btn.innerHTML = '<span class="wallet-dot"></span>Connect Wallet';
+        btn.classList.remove('connected');
+        document.getElementById('walletBalance').style.display = 'none';
+      }
+    });
+  }
 </script>
 </body>
 </html>
