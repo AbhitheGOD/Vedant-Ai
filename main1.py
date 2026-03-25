@@ -1,0 +1,717 @@
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+import uvicorn
+
+app = FastAPI(title="VedantAI")
+
+# --- BACKEND LOGIC ---
+
+@app.get("/", response_class=HTMLResponse)
+async def get_ui():
+    # This returns the entire Frontend we built
+    return <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VEDANT AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Tiro+Devanagari+Sanskrit&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-primary: #faf8f5;
+      --bg-secondary: #ffffff;
+      --bg-card: #ffffff;
+      --bg-input: #f4f1ec;
+      --bg-sidebar: #fdfcfa;
+      --accent-saffron: #e07a2f;
+      --accent-orange: #d4691a;
+      --accent-warm: #c45d18;
+      --accent-light: #fef3e8;
+      --accent-lighter: #fff8f2;
+      --accent-deep: #b85515;
+      --accent-glow: rgba(224,122,47,0.06);
+      --accent-glow-mid: rgba(224,122,47,0.12);
+      --text-primary: #1a1714;
+      --text-secondary: #6b6259;
+      --text-muted: #a69d93;
+      --border: #ebe6df;
+      --border-mid: #ddd6cc;
+      --border-bright: #c9bfb2;
+      --user-bubble: linear-gradient(135deg,#e07a2f,#d4691a);
+      --bot-bubble: #ffffff;
+      --scrollbar: #d9d3ca;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.08);
+      --shadow-card: 0 1px 4px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.02);
+      --radius: 14px;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:var(--bg-primary);color:var(--text-primary);font-family:'Plus Jakarta Sans',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='4' fill='%23e07a2f' opacity='0.5'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%23e07a2f'/%3E%3C/svg%3E") 12 12, auto}
+
+    #cursorTrail{position:fixed;inset:0;pointer-events:none;z-index:9999}
+    body::before{content:'';position:fixed;top:0;left:0;right:0;height:500px;background:linear-gradient(180deg,rgba(254,243,232,0.6) 0%,rgba(250,248,245,0) 100%);pointer-events:none;z-index:0}
+    #petals{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.5}
+
+    /* ── OFFLINE BANNER ── */
+    #offlineBanner{display:none;position:relative;z-index:20;background:#fff8f2;border-bottom:1px solid #f5c9a0;padding:8px 24px;align-items:center;justify-content:space-between;gap:12px;animation:bannerSlide .3s ease}
+    #offlineBanner.show{display:flex}
+    @keyframes bannerSlide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+    .banner-left{display:flex;align-items:center;gap:10px;font-size:12.5px;color:#8a4a1a}
+    .banner-dot{width:7px;height:7px;border-radius:50%;background:#e07a2f;animation:pulse 1.2s ease infinite;flex-shrink:0}
+    .banner-retry{padding:4px 12px;border-radius:100px;border:1px solid #e07a2f;background:transparent;color:#e07a2f;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;cursor:pointer;transition:all .2s ease;flex-shrink:0}
+    .banner-retry:hover{background:#e07a2f;color:white}
+
+    /* ── TOAST ── */
+    #toastContainer{position:fixed;bottom:24px;right:24px;z-index:9998;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+    .toast{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;background:var(--text-primary);color:white;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;box-shadow:var(--shadow-lg);pointer-events:auto;animation:toastIn .35s cubic-bezier(.4,0,.2,1);min-width:160px}
+    .toast.out{animation:toastOut .3s ease forwards}
+    @keyframes toastIn{from{opacity:0;transform:translateY(16px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @keyframes toastOut{to{opacity:0;transform:translateY(8px) scale(.95)}}
+    .toast-icon{font-size:14px}
+
+    /* ── SCROLL TO BOTTOM ── */
+    #scrollBtn{position:absolute;bottom:90px;right:20px;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:white;color:var(--text-secondary);font-size:14px;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:var(--shadow-md);transition:all .25s ease;z-index:5}
+    #scrollBtn.show{display:flex}
+    #scrollBtn:hover{background:var(--accent-light);border-color:var(--accent-saffron);color:var(--accent-saffron);transform:translateY(-2px)}
+
+    header{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:64px;background:rgba(255,255,255,0.85);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);flex-shrink:0;animation:slideDown .6s ease}
+    @keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+    .header-left{display:flex;align-items:center;gap:12px}
+    .logo-icon{width:38px;height:38px;background:var(--accent-saffron);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(224,122,47,0.25);flex-shrink:0;animation:breathe 4s ease-in-out infinite;transition:transform .3s ease}
+    .logo-icon:hover{transform:scale(1.1) rotate(5deg)}
+    @keyframes breathe{0%,100%{box-shadow:0 2px 8px rgba(224,122,47,0.25);transform:scale(1)}50%{box-shadow:0 4px 20px rgba(224,122,47,0.35);transform:scale(1.04)}}
+    .header-title{display:flex;flex-direction:column}
+    .header-title h1{font-family:'Source Serif 4',serif;font-size:18px;font-weight:700;color:var(--text-primary);letter-spacing:1.5px;line-height:1.2}
+    .header-title span{font-size:10px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500}
+    .header-right{display:flex;align-items:center;gap:10px}
+    .status-pill{display:flex;align-items:center;gap:7px;padding:6px 14px;border-radius:100px;border:1px solid var(--border);background:var(--bg-secondary);font-size:11px;color:var(--text-secondary);cursor:pointer;transition:all .3s ease;font-weight:500}
+    .status-pill:hover{border-color:var(--border-mid);box-shadow:var(--shadow-sm);transform:translateY(-1px)}
+    .status-dot{width:7px;height:7px;border-radius:50%;background:#ccc;transition:all .3s ease}
+    .status-dot.online{background:#34c759;box-shadow:0 0 8px rgba(52,199,89,0.4)}
+    .status-dot.offline{background:#ff3b30}
+    .status-dot.checking{background:var(--accent-saffron);animation:pulse 1.2s ease infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    .new-chat-btn{display:flex;align-items:center;gap:5px;padding:7px 16px;border-radius:100px;border:none;background:var(--text-primary);color:white;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;cursor:pointer;transition:all .3s ease;letter-spacing:.3px;position:relative;overflow:hidden}
+    .new-chat-btn:hover{background:#333;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+    .new-chat-btn:active{transform:translateY(0) scale(.97)}
+    .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,0.3);transform:scale(0);animation:rippleAnim .6s ease-out;pointer-events:none}
+    @keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+
+    .main-layout{display:flex;flex:1;overflow:hidden;position:relative;z-index:1}
+    .sidebar{width:272px;flex-shrink:0;background:var(--bg-sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;animation:slideRight .5s ease}
+    @keyframes slideRight{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:translateX(0)}}
+    .source-list-scroll{max-height:200px;overflow-y:auto}
+    .source-list-scroll::-webkit-scrollbar{width:3px}
+    .source-list-scroll::-webkit-scrollbar-thumb{background:var(--scrollbar);border-radius:2px}
+    .sidebar-section{padding:18px 16px 10px}
+    .sidebar-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;font-weight:700}
+    .source-chip{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;border:none;background:transparent;margin-bottom:1px;cursor:pointer;transition:all .25s ease}
+    .source-chip:hover{background:var(--accent-light);transform:translateX(3px)}
+    .source-chip-icon{font-size:14px;flex-shrink:0}
+    .source-chip-info{flex:1;min-width:0}
+    .source-chip-name{font-size:12px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .source-chip-sub{font-size:10px;color:var(--text-muted);margin-top:1px}
+    .divider{height:1px;background:var(--border);margin:6px 16px}
+    .suggestion-section{padding:12px 16px;flex:1;overflow-y:auto}
+    .suggestion-btn{width:100%;text-align:left;padding:9px 12px;border-radius:10px;border:none;background:transparent;color:var(--text-secondary);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .25s ease;margin-bottom:2px;line-height:1.5;font-weight:400}
+    .suggestion-btn:hover{background:var(--accent-light);color:var(--text-primary);padding-left:16px}
+    .lang-section{padding:14px 16px;border-top:1px solid var(--border);max-height:180px;overflow-y:auto;flex-shrink:0}
+    .lang-section::-webkit-scrollbar{width:2px}
+    .lang-section::-webkit-scrollbar-thumb{background:var(--scrollbar);border-radius:2px}
+    .lang-grid{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+    .lang-tag{padding:3px 10px;border-radius:100px;border:1px solid var(--border);font-size:10px;color:var(--text-muted);background:white;font-weight:500;transition:all .25s ease;cursor:default}
+    .lang-tag:hover{border-color:var(--accent-saffron);color:var(--accent-saffron);background:var(--accent-lighter);transform:scale(1.05)}
+
+    .chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--bg-primary);position:relative}
+    .messages-container{flex:1;overflow-y:auto;padding:28px 40px;scroll-behavior:smooth}
+    .messages-container::-webkit-scrollbar{width:4px}
+    .messages-container::-webkit-scrollbar-track{background:transparent}
+    .messages-container::-webkit-scrollbar-thumb{background:var(--scrollbar);border-radius:2px}
+
+    /* ── INPUT DISABLED STATE ── */
+    .input-area.disabled-state .input-wrapper{opacity:.5;pointer-events:none}
+    .input-area.disabled-state .send-btn{opacity:.3;cursor:not-allowed}
+    .input-area.disabled-state .mic-btn{opacity:.3;cursor:not-allowed}
+
+    .welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:40px}
+    .welcome>*{animation:fadeUp .7s ease both}
+    .welcome>*:nth-child(1){animation-delay:.1s}
+    .welcome>*:nth-child(2){animation-delay:.2s}
+    .welcome>*:nth-child(3){animation-delay:.3s}
+    .welcome>*:nth-child(4){animation-delay:.4s}
+    .welcome>*:nth-child(5){animation-delay:.5s}
+    .welcome>*:nth-child(6){animation-delay:.6s}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(25px)}to{opacity:1;transform:translateY(0)}}
+    .welcome-om{font-size:56px;line-height:1;margin-bottom:20px;width:88px;height:88px;display:flex;align-items:center;justify-content:center;background:var(--accent-light);border-radius:24px;box-shadow:0 4px 24px rgba(224,122,47,0.12);animation:fadeUp .7s ease both, omGlow 3s ease-in-out infinite;animation-delay:.1s}
+    @keyframes omGlow{0%,100%{box-shadow:0 4px 24px rgba(224,122,47,0.12)}50%{box-shadow:0 8px 40px rgba(224,122,47,0.22)}}
+    .welcome h2{font-family:'Source Serif 4',serif;font-size:34px;font-weight:700;color:var(--text-primary);letter-spacing:3px;margin-bottom:4px}
+    .welcome-sanskrit{font-family:'Tiro Devanagari Sanskrit',serif;font-size:16px;color:var(--accent-saffron);margin-bottom:12px;font-weight:400}
+    .welcome p{font-size:14px;color:var(--text-secondary);max-width:480px;line-height:1.8;margin-bottom:32px;font-weight:400}
+    .welcome-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:560px;width:100%}
+    .welcome-card{padding:18px 20px;border-radius:var(--radius);border:1px solid var(--border);background:white;cursor:pointer;transition:all .35s cubic-bezier(.4,0,.2,1);text-align:left;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+    .welcome-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent-saffron);transform:scaleX(0);transform-origin:left;transition:transform .35s ease}
+    .welcome-card:hover{border-color:var(--accent-saffron);box-shadow:var(--shadow-md),0 0 0 1px rgba(224,122,47,0.08);transform:translateY(-4px)}
+    .welcome-card:hover::after{transform:scaleX(1)}
+    .welcome-card:active{transform:translateY(-1px) scale(.98)}
+    .welcome-card-icon{font-size:22px;margin-bottom:8px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:var(--accent-light);border-radius:10px;transition:transform .3s ease}
+    .welcome-card:hover .welcome-card-icon{transform:scale(1.1) rotate(-5deg)}
+    .welcome-card-title{font-family:'Source Serif 4',serif;font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:4px}
+    .welcome-card-desc{font-size:11px;color:var(--text-muted);line-height:1.6;font-weight:400}
+
+    .message-group{margin-bottom:24px;animation:msgSlideIn .4s cubic-bezier(.4,0,.2,1)}
+    @keyframes msgSlideIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .message-row{display:flex;align-items:flex-start;gap:10px}
+    .message-row.user{flex-direction:row-reverse}
+    .avatar{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:transform .2s ease}
+    .avatar:hover{transform:scale(1.1)}
+    .avatar.bot{background:var(--accent-light);border:1px solid var(--border)}
+    .avatar.user{background:var(--accent-saffron);color:white;box-shadow:0 2px 8px rgba(224,122,47,0.2)}
+    .bubble{max-width:68%;border-radius:18px;padding:14px 18px;font-size:13.5px;line-height:1.75;position:relative;transition:box-shadow .3s ease}
+    .bubble:hover{box-shadow:var(--shadow-md)}
+    .bubble.user{background:var(--user-bubble);border-radius:18px 4px 18px 18px;color:white;box-shadow:0 2px 12px rgba(224,122,47,0.15)}
+    .bubble.bot{background:white;border:1px solid var(--border);border-radius:4px 18px 18px 18px;color:var(--text-primary);box-shadow:var(--shadow-sm)}
+    .bubble.bot.streaming{border-color:var(--accent-saffron);box-shadow:0 0 0 1px rgba(224,122,47,0.1),0 0 20px rgba(224,122,47,0.04)}
+    .bubble-meta{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+    .lang-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:100px;background:var(--accent-light);font-size:10px;color:var(--accent-saffron);font-weight:600;letter-spacing:.3px}
+    .time-label{font-size:10px;color:var(--text-muted)}
+
+    /* ── COPY BUTTON ── */
+    .copy-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;border:1px solid var(--border);background:white;color:var(--text-muted);font-size:10px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .25s ease;font-weight:500;opacity:0;pointer-events:none}
+    .bubble.bot:hover~* .copy-btn,
+    .message-row:hover .copy-btn{opacity:1;pointer-events:auto}
+    .copy-btn:hover{border-color:var(--accent-saffron);color:var(--accent-saffron);background:var(--accent-lighter)}
+    .copy-btn.copied{border-color:#34c759;color:#34c759;background:#f0fdf4;opacity:1;pointer-events:none}
+
+    .sources-section{margin-top:10px;padding-left:44px}
+    .sources-toggle{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:100px;border:1px solid var(--border);background:white;color:var(--text-secondary);font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .25s ease;margin-bottom:8px;font-weight:500}
+    .sources-toggle:hover{border-color:var(--accent-saffron);color:var(--accent-saffron);background:var(--accent-lighter)}
+    .sources-list{display:none;flex-direction:column;gap:6px}
+    .sources-list.open{display:flex;animation:fadeUp .3s ease}
+    .source-card{padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:white;font-size:12px;transition:all .25s ease;box-shadow:var(--shadow-sm)}
+    .source-card:hover{border-color:var(--border-mid);box-shadow:var(--shadow-md);transform:translateY(-1px)}
+    .source-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+    .source-card-ref{font-family:'Source Serif 4',serif;font-weight:600;color:var(--accent-orange);font-size:12px;text-transform:capitalize}
+    .source-card-score{font-size:10px;color:var(--text-muted);background:var(--bg-input);padding:2px 8px;border-radius:100px;font-weight:600}
+    .source-card-text{color:var(--text-secondary);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:11px}
+    .translation-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:100px;background:#f0ebff;font-size:10px;color:#7c5cbf;font-weight:600}
+    .related-questions{margin-top:10px;padding-left:44px}
+    .related-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;font-weight:700}
+    .related-chips{display:flex;flex-direction:column;gap:4px}
+    .related-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:10px;border:1px solid var(--border);background:white;color:var(--text-secondary);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .25s ease;text-align:left;width:fit-content;max-width:100%;font-weight:400}
+    .related-chip:hover{border-color:var(--accent-saffron);color:var(--accent-saffron);background:var(--accent-lighter);transform:translateX(4px)}
+
+    .typing-indicator{display:flex;align-items:center;gap:10px;padding:0 0 20px;animation:msgSlideIn .3s ease}
+    .typing-dots{display:flex;align-items:center;gap:5px;padding:12px 16px;background:white;border:1px solid var(--border);border-radius:4px 18px 18px 18px;box-shadow:var(--shadow-sm)}
+    .typing-dots span{width:6px;height:6px;border-radius:50%;background:var(--accent-saffron);animation:typeBounce 1.3s infinite}
+    .typing-dots span:nth-child(2){animation-delay:.15s}
+    .typing-dots span:nth-child(3){animation-delay:.3s}
+    @keyframes typeBounce{0%,60%,100%{transform:translateY(0);opacity:.3}30%{transform:translateY(-6px);opacity:1}}
+    .cursor{display:inline-block;width:2px;height:1em;background:var(--accent-saffron);margin-left:2px;vertical-align:text-bottom;animation:blink .85s ease infinite}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+    .input-area{padding:14px 28px 18px;background:rgba(250,248,245,0.92);border-top:1px solid var(--border);backdrop-filter:blur(16px);flex-shrink:0;animation:slideUp .5s ease}
+    @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .input-wrapper{display:flex;align-items:flex-end;gap:8px;padding:8px 8px 8px 16px;background:white;border-radius:16px;border:1px solid var(--border);transition:all .3s ease;box-shadow:var(--shadow-sm)}
+    .input-wrapper:focus-within{border-color:var(--accent-saffron);box-shadow:0 0 0 3px rgba(224,122,47,0.08),var(--shadow-md)}
+    #messageInput{flex:1;background:transparent;border:none;outline:none;color:var(--text-primary);font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:400;resize:none;max-height:140px;min-height:24px;line-height:1.6;padding:4px 0}
+    #messageInput::placeholder{color:var(--text-muted)}
+    .input-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+
+    /* ── SEND / STOP BUTTON ── */
+    .send-btn{width:38px;height:38px;border-radius:10px;border:none;background:var(--accent-saffron);color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s cubic-bezier(.4,0,.2,1);flex-shrink:0;box-shadow:0 2px 8px rgba(224,122,47,0.25);position:relative;overflow:hidden}
+    .send-btn:hover{background:var(--accent-warm);transform:scale(1.06);box-shadow:0 4px 16px rgba(224,122,47,0.3)}
+    .send-btn:active{transform:scale(.93)}
+    .send-btn:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
+    .send-btn.stop-mode{background:#ff3b30;box-shadow:0 2px 8px rgba(255,59,48,0.25)}
+    .send-btn.stop-mode:hover{background:#e0352b;box-shadow:0 4px 16px rgba(255,59,48,0.3)}
+    .send-btn .btn-icon{transition:all .2s ease;display:flex;align-items:center;justify-content:center}
+
+    .input-hint{display:flex;align-items:center;justify-content:space-between;margin-top:6px;padding:0 4px}
+    .hint-text{font-size:10px;color:var(--text-muted);font-weight:400}
+    .char-count{font-size:10px;color:var(--text-muted)}
+    .error-bubble{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;font-size:13px;margin-top:8px;animation:shake .4s ease}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+    .suggestion-section::-webkit-scrollbar{width:3px}
+    .suggestion-section::-webkit-scrollbar-thumb{background:var(--scrollbar);border-radius:2px}
+
+    .sidebar-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:white}
+    .sidebar-tab{flex:1;padding:12px 0;border:none;background:transparent;color:var(--text-muted);font-size:10px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .25s ease;border-bottom:2px solid transparent;margin-bottom:-1px}
+    .sidebar-tab.active{color:var(--accent-saffron);border-bottom-color:var(--accent-saffron)}
+    .sidebar-tab:hover:not(.active){color:var(--text-secondary)}
+    .sidebar-panel{display:flex;flex-direction:column;flex:1;overflow:hidden}
+    .sidebar-panel.hidden{display:none}
+    .chat-history-list{flex:1;overflow-y:auto;padding:8px 8px 0}
+    .chat-history-list::-webkit-scrollbar{width:2px}
+    .chat-history-list::-webkit-scrollbar-thumb{background:var(--scrollbar);border-radius:2px}
+    .chat-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;border:none;cursor:pointer;transition:all .25s ease;margin-bottom:1px;background:transparent}
+    .chat-item:hover{background:var(--accent-light);transform:translateX(2px)}
+    .chat-item.active-chat{background:var(--accent-light)}
+    .chat-item-icon{font-size:13px;flex-shrink:0;opacity:.5}
+    .chat-item-info{flex:1;min-width:0}
+    .chat-item-title{font-size:12px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4;font-weight:500}
+    .chat-item-time{font-size:9px;color:var(--text-muted);margin-top:1px}
+    .chat-item-del{width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:6px;border:none;background:transparent;color:var(--text-muted);font-size:12px;cursor:pointer;opacity:0;transition:all .2s;flex-shrink:0}
+    .chat-item:hover .chat-item-del{opacity:1}
+    .chat-item-del:hover{background:#fef2f2;color:#dc2626}
+    .chat-history-empty{text-align:center;padding:28px 16px;color:var(--text-muted);font-size:12px;line-height:1.8}
+    .export-btn{display:flex;align-items:center;justify-content:center;gap:6px;margin:8px 8px 12px;padding:8px 12px;border-radius:100px;border:1px solid var(--border);background:white;color:var(--text-secondary);font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .25s ease;font-weight:500}
+    .export-btn:hover{border-color:var(--accent-saffron);color:var(--accent-saffron);background:var(--accent-lighter)}
+
+    .verse-card{background:white;border:1px solid var(--border);border-radius:16px;padding:24px 28px;max-width:560px;width:100%;margin-bottom:28px;text-align:center;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;transition:all .3s ease}
+    .verse-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+    .verse-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--accent-saffron),#f5a623,var(--accent-saffron),transparent)}
+    .verse-day-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;font-weight:700}
+    .verse-sanskrit{font-family:'Tiro Devanagari Sanskrit',serif;font-size:17px;color:var(--accent-orange);line-height:2;margin-bottom:8px}
+    .verse-translation{font-family:'Source Serif 4',serif;font-size:13px;color:var(--text-secondary);line-height:1.8;font-style:italic}
+    .verse-source{font-size:10px;color:var(--text-muted);margin-top:10px;letter-spacing:.5px;font-weight:600}
+
+    .listen-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;border:1px solid var(--border);background:white;color:var(--text-secondary);font-size:10px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .25s ease;font-weight:500}
+    .listen-btn:hover{border-color:var(--accent-saffron);color:var(--accent-saffron);transform:scale(1.03)}
+    .listen-btn.playing{border-color:#34c759;color:#34c759;background:#f0fdf4}
+    .listen-btn.paused{border-color:var(--accent-saffron);color:var(--accent-saffron);background:var(--accent-lighter)}
+    .listen-btn:disabled{opacity:.4;cursor:not-allowed}
+    .mic-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:white;color:var(--text-muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s ease;flex-shrink:0}
+    .mic-btn:hover{border-color:var(--border-mid);color:var(--text-primary);background:var(--bg-input)}
+    .mic-btn.recording{border-color:#ff3b30;color:#ff3b30;background:#fef2f2;animation:micPulse 1.2s ease infinite}
+    @keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,59,48,.2)}50%{box-shadow:0 0 0 8px rgba(255,59,48,0)}}
+
+    .bubble.bot .md-h1{display:block;font-family:'Source Serif 4',serif;font-size:18px;font-weight:700;color:var(--text-primary);margin:14px 0 5px}
+    .bubble.bot .md-h2{display:block;font-family:'Source Serif 4',serif;font-size:15px;font-weight:700;color:var(--text-primary);margin:11px 0 4px}
+    .bubble.bot .md-h3{display:block;font-family:'Source Serif 4',serif;font-size:14px;font-weight:600;color:var(--text-primary);margin:9px 0 3px}
+    .bubble.bot .md-li{display:block;padding:3px 0 3px 14px;border-left:2px solid var(--accent-saffron);margin:3px 0}
+    .bubble.bot .md-hr{display:block;border:none;border-top:1px solid var(--border);margin:12px 0}
+    .bubble.bot .md-code{background:var(--accent-light);padding:1px 6px;border-radius:4px;font-size:12px;color:var(--accent-orange);font-family:monospace}
+
+    ::selection{background:rgba(224,122,47,0.15);color:var(--text-primary)}
+    @media(max-width:768px){.sidebar{display:none}header{padding:0 14px}.messages-container{padding:20px 16px}.input-area{padding:10px 14px 14px}.bubble{max-width:88%}.welcome-cards{grid-template-columns:1fr}.welcome h2{font-size:26px;letter-spacing:2px}.sources-section,.related-questions{padding-left:0}}
+  </style>
+</head>
+<body>
+<canvas id="petals"></canvas>
+<canvas id="cursorTrail"></canvas>
+
+<!-- ── OFFLINE BANNER ── -->
+<div id="offlineBanner">
+  <div class="banner-left">
+    <div class="banner-dot"></div>
+    <span id="bannerMsg">Server is offline — responses are unavailable right now.</span>
+  </div>
+  <button class="banner-retry" onclick="checkHealth()">Retry connection</button>
+</div>
+
+<!-- ── TOAST CONTAINER ── -->
+<div id="toastContainer"></div>
+
+<header>
+  <div class="header-left">
+    <div class="logo-icon">🕉</div>
+    <div class="header-title"><h1>VEDANT AI</h1><span>Vedic Intelligence</span></div>
+  </div>
+  <div class="header-right">
+    <div class="status-pill" onclick="checkHealth()" title="Click to refresh"><div class="status-dot checking" id="statusDot"></div><span id="statusText">Connecting...</span></div>
+    <button class="new-chat-btn" onclick="newChat()" id="newChatBtn">+ New Chat</button>
+  </div>
+</header>
+<div class="main-layout">
+  <aside class="sidebar">
+    <div class="sidebar-tabs">
+      <button class="sidebar-tab active" id="tab-history" onclick="switchSidebarTab('history')">History</button>
+      <button class="sidebar-tab" id="tab-explore" onclick="switchSidebarTab('explore')">Explore</button>
+    </div>
+    <div class="sidebar-panel" id="panel-history">
+      <div class="chat-history-list" id="chatHistoryList"><div class="chat-history-empty">No saved chats yet.<br>Start a conversation!</div></div>
+      <button class="export-btn" onclick="exportCurrentChat()">↓ Export chat</button>
+    </div>
+    <div class="sidebar-panel hidden" id="panel-explore">
+      <div class="sidebar-section"><div class="sidebar-label">Knowledge Sources</div><div id="sourcesList" class="source-list-scroll"><div class="source-chip"><span class="source-chip-icon">📖</span><div class="source-chip-info"><div class="source-chip-name">Loading...</div></div></div></div></div>
+      <div class="divider"></div>
+      <div class="suggestion-section"><div class="sidebar-label">Try asking</div>
+        <button class="suggestion-btn" onclick="sendSuggestion(this.textContent)">What is dharma according to the Bhagavad Gita?</button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this.textContent)">Explain the concept of Atman and Brahman</button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this.textContent)">What are the four paths of yoga?</button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this.textContent)">What does Patanjali say about the mind?</button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this.textContent)">कर्म क्या है और इसका जीवन में क्या महत्व है?</button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this.textContent)">Explain moksha and how to attain it</button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this.textContent)">What are the Mahavakyas of the Upanishads?</button>
+        <button class="suggestion-btn" onclick="sendSuggestion(this.textContent)">धर्मस्य लक्षणं किम्?</button>
+      </div>
+      <div class="lang-section"><div class="sidebar-label">Supported Languages</div><div class="lang-grid">
+        <span class="lang-tag">English</span><span class="lang-tag">हिन्दी</span><span class="lang-tag">संस्कृत</span><span class="lang-tag">বাংলা</span><span class="lang-tag">தமிழ்</span><span class="lang-tag">తెలుగు</span><span class="lang-tag">ಕನ್ನಡ</span><span class="lang-tag">മലയാളം</span><span class="lang-tag">मराठी</span><span class="lang-tag">ગુજરાતી</span><span class="lang-tag">ਪੰਜਾਬੀ</span><span class="lang-tag">اردو</span><span class="lang-tag">ଓଡ଼ିଆ</span><span class="lang-tag">অসমীয়া</span><span class="lang-tag">नेपाली</span><span class="lang-tag">中文</span><span class="lang-tag">日本語</span><span class="lang-tag">한국어</span><span class="lang-tag">Tiếng Việt</span><span class="lang-tag">ภาษาไทย</span><span class="lang-tag">Bahasa</span><span class="lang-tag">Filipino</span><span class="lang-tag">Español</span><span class="lang-tag">Français</span><span class="lang-tag">Deutsch</span><span class="lang-tag">Italiano</span><span class="lang-tag">Português</span><span class="lang-tag">Русский</span><span class="lang-tag">Polski</span><span class="lang-tag">Nederlands</span><span class="lang-tag">Ελληνικά</span><span class="lang-tag">Svenska</span><span class="lang-tag">العربية</span><span class="lang-tag">فارسی</span><span class="lang-tag">עברית</span><span class="lang-tag">Türkçe</span><span class="lang-tag">Swahili</span><span class="lang-tag">አማርኛ</span>
+      </div></div>
+    </div>
+  </aside>
+  <div class="chat-area">
+    <div class="messages-container" id="messagesContainer">
+      <div class="welcome" id="welcomeScreen">
+        <div class="welcome-om">🕉</div>
+        <h2>VEDANT AI</h2>
+        <div class="welcome-sanskrit">ज्ञानं परमं ध्येयम्</div>
+        <p>Ask questions about the Vedas, Upanishads, Bhagavad Gita, Yoga Sutras, and more — in any language. The wisdom of ancient India, accessible to all.</p>
+        <div id="verseOfDay"></div>
+        <div class="welcome-cards">
+          <div class="welcome-card" onclick="sendSuggestion('What is dharma according to the Bhagavad Gita?')"><div class="welcome-card-icon">⚖️</div><div class="welcome-card-title">Dharma & Ethics</div><div class="welcome-card-desc">Explore righteous duty and moral law from Vedic texts</div></div>
+          <div class="welcome-card" onclick="sendSuggestion('Explain the concept of Atman and Brahman')"><div class="welcome-card-icon">✨</div><div class="welcome-card-title">Atman & Brahman</div><div class="welcome-card-desc">The individual self and ultimate reality in Vedanta</div></div>
+          <div class="welcome-card" onclick="sendSuggestion('What are the eight limbs of yoga according to Patanjali?')"><div class="welcome-card-icon">🧘</div><div class="welcome-card-title">Yoga & Meditation</div><div class="welcome-card-desc">Patanjali's Ashtanga Yoga and the path to liberation</div></div>
+          <div class="welcome-card" onclick="sendSuggestion('What are the Mahavakyas of the Upanishads?')"><div class="welcome-card-icon">📜</div><div class="welcome-card-title">Upanishadic Wisdom</div><div class="welcome-card-desc">The great sayings and core teachings of the Upanishads</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SCROLL TO BOTTOM ── -->
+    <button id="scrollBtn" onclick="scrollToBottom()" title="Jump to latest">↓</button>
+
+    <div class="input-area" id="inputArea">
+      <div class="input-wrapper">
+        <textarea id="messageInput" placeholder="Ask about Vedic knowledge in any language..." rows="1" onInput="autoResize(this);updateCharCount()" onKeydown="handleKeydown(event)"></textarea>
+        <div class="input-actions">
+          <button class="mic-btn" id="micBtn" onclick="toggleRecording()" title="Speak">🎤</button>
+          <button class="send-btn" id="sendBtn" onclick="handleSendOrStop()" title="Send">
+            <span class="btn-icon" id="btnIcon">➤</span>
+          </button>
+        </div>
+      </div>
+      <div class="input-hint">
+        <span class="hint-text" id="hintText">Enter to send · Shift+Enter for new line</span>
+        <span class="char-count" id="charCount"></span>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// ── Floating petals ──
+(function(){const c=document.getElementById('petals'),x=c.getContext('2d');let w,h,p=[];function r(){w=c.width=innerWidth;h=c.height=innerHeight}r();addEventListener('resize',r);const colors=['rgba(224,122,47,','rgba(212,105,26,','rgba(245,166,35,'];for(let i=0;i<25;i++)p.push({x:Math.random()*w,y:Math.random()*h,s:Math.random()*3+1,dx:Math.random()*.3-.15,dy:Math.random()*.15+.05,rot:Math.random()*360,dr:Math.random()*.5-.25,o:Math.random()*.25+.05,c:colors[i%3]});function d(){x.clearRect(0,0,w,h);p.forEach(pt=>{x.save();x.translate(pt.x,pt.y);x.rotate(pt.rot*Math.PI/180);x.beginPath();x.ellipse(0,0,pt.s,pt.s*.5,0,0,Math.PI*2);x.fillStyle=pt.c+pt.o+')';x.fill();x.restore();pt.x+=pt.dx;pt.y+=pt.dy;pt.rot+=pt.dr;if(pt.y>h+10){pt.y=-10;pt.x=Math.random()*w}if(pt.x<-10)pt.x=w+10;if(pt.x>w+10)pt.x=-10});requestAnimationFrame(d)}d()})();
+
+// ── Cursor trail ──
+(function(){const c=document.getElementById('cursorTrail'),x=c.getContext('2d');let w,h,pts=[];function r(){w=c.width=innerWidth;h=c.height=innerHeight}r();addEventListener('resize',r);addEventListener('mousemove',e=>{pts.push({x:e.clientX,y:e.clientY,life:1})});function d(){x.clearRect(0,0,w,h);pts=pts.filter(p=>p.life>0);pts.forEach(p=>{x.beginPath();x.arc(p.x,p.y,p.life*3,0,Math.PI*2);x.fillStyle=`rgba(224,122,47,${p.life*.15})`;x.fill();p.life-=.03});requestAnimationFrame(d)}d()})();
+
+// ── Ripple effect ──
+document.addEventListener('click',e=>{const b=e.target.closest('.new-chat-btn,.send-btn');if(!b)return;const r=document.createElement('span');r.className='ripple';const rect=b.getBoundingClientRect();r.style.left=(e.clientX-rect.left)+'px';r.style.top=(e.clientY-rect.top)+'px';r.style.width=r.style.height=Math.max(rect.width,rect.height)*2+'px';r.style.marginLeft=r.style.marginTop=-Math.max(rect.width,rect.height)+'px';b.appendChild(r);setTimeout(()=>r.remove(),600)});
+
+const API='http://localhost:8000';
+let sessionId=null,isStreaming=false,streamAbortController=null,serverOnline=false;
+
+const LANG_NAMES={en:'English',hi:'Hindi',sa:'Sanskrit',ta:'Tamil',te:'Telugu',kn:'Kannada',ml:'Malayalam',mr:'Marathi',bn:'Bengali',gu:'Gujarati',pa:'Punjabi',ur:'Urdu',or:'Odia',as:'Assamese',ne:'Nepali',si:'Sinhala',zh:'Chinese',ja:'Japanese',ko:'Korean',vi:'Vietnamese',th:'Thai',id:'Indonesian',ms:'Malay',tl:'Filipino',es:'Spanish',fr:'French',de:'German',it:'Italian',pt:'Portuguese',ru:'Russian',pl:'Polish',nl:'Dutch',el:'Greek',sv:'Swedish',ar:'Arabic',fa:'Persian',he:'Hebrew',tr:'Turkish',sw:'Swahili',am:'Amharic'};
+const SOURCE_ICONS={bhagavad_gita:'📖',bhagavad_gita_selected:'📖',upanishads_key_concepts:'🕉',yoga_sutras:'🧘',vedic_concepts:'✨'};
+
+// ── TOAST ──
+function showToast(msg,icon='✓',duration=2500){
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div');
+  t.className='toast';
+  t.innerHTML=`<span class="toast-icon">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),300)},duration);
+}
+
+// ── OFFLINE BANNER ──
+function setOfflineState(offline,msg=''){
+  const banner=document.getElementById('offlineBanner');
+  const inputArea=document.getElementById('inputArea');
+  const msgEl=document.getElementById('bannerMsg');
+  serverOnline=!offline;
+  if(offline){
+    banner.classList.add('show');
+    if(msg)msgEl.textContent=msg;
+    inputArea.classList.add('disabled-state');
+    document.getElementById('messageInput').placeholder='Server offline — cannot send messages';
+  }else{
+    banner.classList.remove('show');
+    inputArea.classList.remove('disabled-state');
+    document.getElementById('messageInput').placeholder='Ask about Vedic knowledge in any language...';
+  }
+}
+
+// ── STOP / SEND TOGGLE ──
+function setStreamingUI(streaming){
+  const btn=document.getElementById('sendBtn');
+  const icon=document.getElementById('btnIcon');
+  const hint=document.getElementById('hintText');
+  if(streaming){
+    btn.classList.add('stop-mode');
+    icon.textContent='■';
+    btn.title='Stop generating';
+    hint.textContent='Generating response... click ■ to stop';
+  }else{
+    btn.classList.remove('stop-mode');
+    icon.textContent='➤';
+    btn.title='Send';
+    hint.textContent='Enter to send · Shift+Enter for new line';
+  }
+}
+
+function handleSendOrStop(){
+  if(isStreaming){
+    stopStreaming();
+  }else{
+    sendMessage();
+  }
+}
+
+function stopStreaming(){
+  if(streamAbortController){
+    streamAbortController.abort();
+    streamAbortController=null;
+  }
+  isStreaming=false;
+  setStreamingUI(false);
+  removeTyping();
+  showToast('Generation stopped','⏹');
+}
+
+// ── SCROLL TO BOTTOM BUTTON ──
+const mc=document.getElementById('messagesContainer');
+const scrollBtn=document.getElementById('scrollBtn');
+mc.addEventListener('scroll',()=>{
+  const atBottom=mc.scrollHeight-mc.scrollTop-mc.clientHeight<80;
+  scrollBtn.classList.toggle('show',!atBottom&&mc.scrollHeight>mc.clientHeight+200);
+});
+
+function formatSourceName(r){return r.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}
+function autoResize(e){e.style.height='auto';e.style.height=Math.min(e.scrollHeight,140)+'px'}
+function updateCharCount(){const v=document.getElementById('messageInput').value,e=document.getElementById('charCount');e.textContent=v.length>50?`${v.length} chars`:''}
+function handleKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSendOrStop()}}
+
+async function checkHealth(){
+  const d=document.getElementById('statusDot'),t=document.getElementById('statusText');
+  d.className='status-dot checking';t.textContent='Checking...';
+  try{
+    const r=await fetch(`${API}/health`),a=await r.json();
+    if(a.ollama_connected){
+      d.className='status-dot online';
+      t.textContent=`Online · ${a.documents_count} docs`;
+      setOfflineState(false);
+    }else{
+      d.className='status-dot offline';
+      t.textContent='Ollama offline';
+      setOfflineState(true,'Ollama is not running — please start it to use Vedant AI.');
+    }
+  }catch{
+    d.className='status-dot offline';
+    t.textContent='Server offline';
+    setOfflineState(true,'Server is offline — make sure python run.py is running.');
+  }
+}
+
+async function loadSources(){try{const r=await fetch(`${API}/sources`),d=await r.json(),e=document.getElementById('sourcesList');e.innerHTML='';if(!d.sources.length){e.innerHTML='<div style="font-size:12px;color:var(--text-muted);padding:8px 12px;">No sources loaded</div>';return}d.sources.forEach(s=>{e.innerHTML+=`<div class="source-chip"><span class="source-chip-icon">${SOURCE_ICONS[s]||'📚'}</span><div class="source-chip-info"><div class="source-chip-name">${formatSourceName(s)}</div><div class="source-chip-sub">Vedic Text</div></div></div>`})}catch{}}
+
+function newChat(){saveCurrentChat();stopCurrentAudio();sessionId=null;currentChatId=null;currentChatMessages=[];const c=document.getElementById('messagesContainer');c.querySelectorAll('.message-group,.typing-indicator').forEach(e=>e.remove());document.getElementById('welcomeScreen').style.display='flex';renderChatHistory()}
+function sendSuggestion(t){if(!serverOnline){showToast('Server is offline','⚠️');return}const i=document.getElementById('messageInput');i.value=t;autoResize(i);sendMessage()}
+function hideWelcome(){const w=document.getElementById('welcomeScreen');if(w)w.style.display='none'}
+function appendUserMessage(t){hideWelcome();stopCurrentAudio();const c=document.getElementById('messagesContainer'),ti=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),d=document.createElement('div');d.className='message-group';d.innerHTML=`<div class="message-row user"><div class="avatar user">👤</div><div class="bubble user">${escapeHtml(t)}<div class="bubble-meta"><span class="time-label">${ti}</span></div></div></div>`;c.appendChild(d);scrollToBottom();currentChatMessages.push({role:'user',content:t,time:ti})}
+function showTyping(){const c=document.getElementById('messagesContainer'),d=document.createElement('div');d.className='typing-indicator';d.id='typingIndicator';d.innerHTML=`<div class="avatar bot">🕉</div><div class="typing-dots"><span></span><span></span><span></span></div>`;c.appendChild(d);scrollToBottom()}
+function removeTyping(){const t=document.getElementById('typingIndicator');if(t)t.remove()}
+function createBotBubble(){hideWelcome();const c=document.getElementById('messagesContainer'),g='group-'+Date.now(),d=document.createElement('div');d.className='message-group';d.id=g;d.innerHTML=`<div class="message-row bot"><div class="avatar bot">🕉</div><div class="bubble bot streaming" id="bubble-${g}"><span id="text-${g}"></span><span class="cursor" id="cursor-${g}"></span><div class="bubble-meta" id="meta-${g}"></div></div></div><div class="sources-section" id="sources-${g}"></div>`;c.appendChild(d);scrollToBottom();return g}
+function appendToBubble(g,t){if(!bubbleRawText[g])bubbleRawText[g]='';bubbleRawText[g]+=t;const e=document.getElementById('text-'+g);if(e)e.textContent=bubbleRawText[g];scrollToBottom()}
+
+function finalizeBubble(g,l,s,tr){
+  const b=document.getElementById('bubble-'+g);
+  if(b)b.classList.remove('streaming');
+  const cu=document.getElementById('cursor-'+g);
+  if(cu)cu.remove();
+  const raw=bubbleRawText[g]||'',te=document.getElementById('text-'+g);
+  if(te)te.innerHTML=renderMarkdown(escapeHtml(raw));
+  delete bubbleRawText[g];
+  lastLangCode=l;
+  messageTexts[g]={text:raw,langCode:l};
+  const ti=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),ln=LANG_NAMES[l]||l,m=document.getElementById('meta-'+g);
+  if(m){
+    const tb=tr?`<span class="translation-badge">🔄 Translated from ${ln}</span>`:'';
+    // Copy button in meta row
+    m.innerHTML=`<span class="lang-badge">🌐 ${ln}</span>${tb}<span class="time-label">${ti}</span><button class="listen-btn" id="listen-btn-${g}" onclick="toggleListen('${g}')">🎧 Listen</button><button class="copy-btn" id="copy-btn-${g}" onclick="copyMessage('${g}')" title="Copy response">⎘ Copy</button>`;
+  }
+  // Make copy btn visible on hover of message row
+  const row=document.querySelector(`#${g} .message-row.bot`);
+  if(row){
+    row.addEventListener('mouseenter',()=>{const cb=document.getElementById('copy-btn-'+g);if(cb&&!cb.classList.contains('copied')){cb.style.opacity='1';cb.style.pointerEvents='auto'}});
+    row.addEventListener('mouseleave',()=>{const cb=document.getElementById('copy-btn-'+g);if(cb&&!cb.classList.contains('copied')){cb.style.opacity='0';cb.style.pointerEvents='none'}});
+  }
+  currentChatMessages.push({role:'bot',content:raw,time:ti,langCode:l,langName:ln});
+  saveCurrentChat();
+  if(s&&s.length>0){
+    const se=document.getElementById('sources-'+g),sc=s.map(x=>`<div class="source-card"><div class="source-card-header"><span class="source-card-ref">${SOURCE_ICONS[x.source]||'📚'} ${formatSourceName(x.source)}${x.chapter?' · Ch. '+x.chapter:''}${x.verse?' · V. '+x.verse:''}</span><span class="source-card-score">${(x.relevance_score*100).toFixed(0)}%</span></div><div class="source-card-text">${escapeHtml(x.text)}</div></div>`).join('');
+    se.innerHTML=`<button class="sources-toggle" onclick="toggleSources('srclist-${g}',this)">📚 ${s.length} source${s.length>1?'s':''} ▾</button><div class="sources-list" id="srclist-${g}">${sc}</div><div class="related-questions" id="related-${g}"><div class="related-label" style="margin-top:10px;">Related questions</div><div class="related-chips" id="chips-${g}"><div style="font-size:11px;color:var(--text-muted)">Loading...</div></div></div>`;
+  }
+}
+
+// ── COPY MESSAGE ──
+async function copyMessage(g){
+  const data=messageTexts[g];
+  if(!data)return;
+  const text=data.text;
+  try{
+    await navigator.clipboard.writeText(text);
+    const btn=document.getElementById('copy-btn-'+g);
+    if(btn){btn.textContent='✓ Copied';btn.classList.add('copied');btn.style.opacity='1';setTimeout(()=>{btn.textContent='⎘ Copy';btn.classList.remove('copied');btn.style.opacity='0';btn.style.pointerEvents='none'},2000)}
+    showToast('Response copied','⎘');
+  }catch{
+    // Fallback for older browsers
+    const ta=document.createElement('textarea');
+    ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    showToast('Response copied','⎘');
+  }
+}
+
+async function loadRecommendations(g,m){try{const r=await fetch(`${API}/recommendations`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:m})}),d=await r.json(),c=document.getElementById('chips-'+g);if(!c||!d.questions||!d.questions.length)return;c.innerHTML=d.questions.map(q=>`<button class="related-chip" onclick="sendSuggestion(this.dataset.q)" data-q="${q.replace(/"/g,'&quot;')}">✦ ${escapeHtml(q)}</button>`).join('')}catch{const c=document.getElementById('chips-'+g);if(c)c.innerHTML=''}}
+function toggleSources(i,b){const e=document.getElementById(i);e.classList.toggle('open');b.textContent=e.classList.contains('open')?b.textContent.replace('▾','▴'):b.textContent.replace('▴','▾')}
+
+function showError(m){
+  removeTyping();hideWelcome();
+  const c=document.getElementById('messagesContainer'),d=document.createElement('div');
+  d.className='message-group';
+  d.innerHTML=`<div class="error-bubble">⚠️ ${escapeHtml(m)}</div>`;
+  c.appendChild(d);scrollToBottom();
+}
+
+async function sendMessage(){
+  if(isStreaming)return;
+  if(!serverOnline){showToast('Server is offline — cannot send','⚠️');return}
+  const i=document.getElementById('messageInput'),t=i.value.trim();
+  if(!t)return;
+  i.value='';autoResize(i);updateCharCount();
+  isStreaming=true;
+  setStreamingUI(true);
+  appendUserMessage(t);showTyping();
+  streamAbortController=new AbortController();
+  try{
+    const r=await fetch(`${API}/chat/stream`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:t,session_id:sessionId}),
+      signal:streamAbortController.signal
+    });
+    if(!r.ok){const e=await r.json().catch(()=>({detail:'Server error'}));showError(e.detail||'Something went wrong');return}
+    removeTyping();
+    const g=createBotBubble();
+    let l='en',tr=false,s=[];
+    const re=r.body.getReader(),de=new TextDecoder();let bu='';
+    while(true){
+      const{value,done}=await re.read();
+      if(done)break;
+      bu+=de.decode(value,{stream:true});
+      const li=bu.split('\n');bu=li.pop();
+      for(const ln of li){
+        if(!ln.startsWith('data: '))continue;
+        try{
+          const d=JSON.parse(ln.slice(6));
+          if(d.event==='meta'){l=d.language;tr=d.translated||false;s=d.sources||[];if(d.session_id)sessionId=d.session_id}
+          else if(d.event==='token')appendToBubble(g,d.token);
+          else if(d.event==='done'){finalizeBubble(g,l,s,tr);loadRecommendations(g,t)}
+          else if(d.event==='error'){finalizeBubble(g,l,s,tr);showError(d.message||'Error')}
+        }catch{}
+      }
+    }
+  }catch(err){
+    if(err.name==='AbortError'){
+      // User stopped — finalize whatever we have
+      const g=Object.keys(bubbleRawText)[0];
+      if(g)finalizeBubble(g,'en',[],false);
+    }else{
+      showError('Cannot connect to server. Make sure python run.py is running.');
+      setOfflineState(true);
+    }
+  }finally{
+    removeTyping();
+    isStreaming=false;
+    setStreamingUI(false);
+    streamAbortController=null;
+    i.focus();
+  }
+}
+
+function scrollToBottom(){const c=document.getElementById('messagesContainer');c.scrollTo({top:c.scrollHeight,behavior:'smooth'})}
+function escapeHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>')}
+function switchSidebarTab(t){document.getElementById('panel-history').classList.toggle('hidden',t!=='history');document.getElementById('panel-explore').classList.toggle('hidden',t!=='explore');document.getElementById('tab-history').classList.toggle('active',t==='history');document.getElementById('tab-explore').classList.toggle('active',t==='explore')}
+
+const VERSES=[{sa:'योगः कर्मसु कौशलम्',translation:'Yoga is excellence in action — do every act with full skill and awareness.',source:'Bhagavad Gita 2.50'},{sa:'तत्त्वमसि',translation:'Thou art That — the individual self and the universal Brahman are one.',source:'Chandogya Upanishad 6.8.7'},{sa:'अहं ब्रह्मास्मि',translation:'I am Brahman — the individual consciousness is identical with the infinite.',source:'Brihadaranyaka Upanishad 1.4.10'},{sa:'सर्वे भवन्तु सुखिनः। सर्वे सन्तु निरामयाः।',translation:'May all beings be happy. May all beings be free from disease.',source:'Brihadaranyaka Upanishad'},{sa:'नायमात्मा बलहीनेन लभ्यः',translation:'The Self cannot be attained by the weak — it requires strength, courage and resolve.',source:'Mundaka Upanishad 3.2.4'},{sa:'कर्मण्येवाधिकारस्ते मा फलेषु कदाचन',translation:'You have the right to perform your actions, but never to the fruits thereof.',source:'Bhagavad Gita 2.47'},{sa:'प्रज्ञानं ब्रह्म',translation:'Consciousness is Brahman — pure awareness is the ultimate reality.',source:'Aitareya Upanishad 3.3'},{sa:'सत्यमेव जयते',translation:'Truth alone triumphs — not falsehood. Through truth the divine path is spread.',source:'Mundaka Upanishad 3.1.6'},{sa:'अयमात्मा ब्रह्म',translation:'This Self is Brahman — what you truly are is the infinite and eternal.',source:'Mandukya Upanishad 1.2'},{sa:'श्रेयान्स्वधर्मो विगुणः परधर्मात्स्वनुष्ठितात्',translation:"Better is one's own dharma, though imperfectly performed, than the dharma of another well performed.",source:'Bhagavad Gita 3.35'},{sa:'विद्या ददाति विनयम्',translation:'Knowledge gives humility — from humility comes worthiness, from worthiness comes wealth, and then joy.',source:'Hitopadesha'},{sa:'आत्मदीपो भव',translation:'Be a lamp unto yourself — seek your own liberation with diligence.',source:'Dhammapada / Buddhist tradition'}];
+function displayVerseOfDay(){const v=VERSES[new Date().getDate()%VERSES.length];document.getElementById('verseOfDay').innerHTML=`<div class="verse-card"><div class="verse-day-label">✦ Verse of the Day ✦</div><div class="verse-sanskrit">${v.sa}</div><div class="verse-translation">"${v.translation}"</div><div class="verse-source">— ${v.source}</div></div>`}
+function renderMarkdown(e){return e.replace(/^# (.+)$/gm,'<span class="md-h1">$1</span>').replace(/^## (.+)$/gm,'<span class="md-h2">$1</span>').replace(/^### (.+)$/gm,'<span class="md-h3">$1</span>').replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/`([^`]+)`/g,'<span class="md-code">$1</span>').replace(/^- (.+)$/gm,'<span class="md-li">$1</span>').replace(/^---$/gm,'<span class="md-hr"></span>').replace(/\n/g,'<br>')}
+
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+let recognition=null,isRecording=false;
+const LANG_BCP47={en:'en-US',hi:'hi-IN',sa:'sa-IN',ta:'ta-IN',te:'te-IN',kn:'kn-IN',ml:'ml-IN',mr:'mr-IN',bn:'bn-BD',gu:'gu-IN',pa:'pa-IN',ur:'ur-PK',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',fr:'fr-FR',de:'de-DE',es:'es-ES',ar:'ar-SA',ru:'ru-RU',pt:'pt-BR',it:'it-IT',tr:'tr-TR'};
+let lastLangCode='en';
+function initVoice(){if(!SpeechRecognition){const b=document.getElementById('micBtn');if(b){b.title='Voice not supported';b.style.opacity='.3';b.style.cursor='not-allowed'}return}recognition=new SpeechRecognition();recognition.continuous=false;recognition.interimResults=true;recognition.lang='en-US';recognition.onstart=()=>{isRecording=true;document.getElementById('micBtn').classList.add('recording');document.getElementById('micBtn').textContent='⏹';document.getElementById('messageInput').placeholder='Listening...'};recognition.onresult=e=>{const t=Array.from(e.results).map(r=>r[0].transcript).join(''),i=document.getElementById('messageInput');i.value=t;autoResize(i)};recognition.onend=()=>{isRecording=false;document.getElementById('micBtn').classList.remove('recording');document.getElementById('micBtn').textContent='🎤';document.getElementById('messageInput').placeholder='Ask about Vedic knowledge in any language...';const t=document.getElementById('messageInput').value.trim();if(t)sendMessage()};recognition.onerror=e=>{isRecording=false;document.getElementById('micBtn').classList.remove('recording');document.getElementById('micBtn').textContent='🎤'}}
+function toggleRecording(){if(!recognition)return;isRecording?recognition.stop():(recognition.lang=LANG_BCP47[lastLangCode]||'en-US',recognition.start())}
+
+const messageTexts={};let currentAudio=null,currentPlayingGroupId=null,usingFallback=false;
+function stopCurrentAudio(){if(currentAudio){currentAudio.pause();currentAudio=null}if(typeof speechSynthesis!=='undefined')speechSynthesis.cancel();if(currentPlayingGroupId){const p=document.getElementById('listen-btn-'+currentPlayingGroupId);if(p){p.textContent='🎧 Listen';p.className='listen-btn';p.disabled=false}}currentPlayingGroupId=null;usingFallback=false}
+async function toggleListen(g){const b=document.getElementById('listen-btn-'+g);if(currentPlayingGroupId===g){if(usingFallback){if(speechSynthesis.paused){speechSynthesis.resume();if(b){b.textContent='⏸ Pause';b.className='listen-btn playing'}}else{speechSynthesis.pause();if(b){b.textContent='▶ Resume';b.className='listen-btn paused'}}}else if(currentAudio){if(currentAudio.paused){currentAudio.play().catch(()=>{});if(b){b.textContent='⏸ Pause';b.className='listen-btn playing'}}else{currentAudio.pause();if(b){b.textContent='▶ Resume';b.className='listen-btn paused'}}}return}stopCurrentAudio();const e=messageTexts[g];if(!e)return;currentPlayingGroupId=g;if(b){b.textContent='⏳...';b.disabled=true}try{const r=await fetch(`${API}/tts`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:e.text,language:e.langCode||'en'})});if(!r.ok)throw new Error;const d=await r.json();if(!d.audio)throw new Error;const a=Uint8Array.from(atob(d.audio),c=>c.charCodeAt(0)),bl=new Blob([a],{type:'audio/wav'}),u=URL.createObjectURL(bl);currentAudio=new Audio(u);currentAudio.onended=()=>{URL.revokeObjectURL(u);currentAudio=null;currentPlayingGroupId=null;if(b){b.textContent='🎧 Listen';b.className='listen-btn';b.disabled=false}};if(b){b.textContent='⏸ Pause';b.className='listen-btn playing';b.disabled=false}currentAudio.play().catch(()=>{URL.revokeObjectURL(u);currentAudio=null;useFallback(e.text,e.langCode,g,b)})}catch{useFallback(e.text,e.langCode,g,b)}}
+function useFallback(t,l,g,b){if(typeof speechSynthesis==='undefined'){if(b){b.textContent='🎧 Listen';b.className='listen-btn';b.disabled=false}currentPlayingGroupId=null;return}usingFallback=true;speechSynthesis.cancel();const c=t.replace(/[#*`_~>]/g,'').replace(/\n+/g,' ').trim(),u=new SpeechSynthesisUtterance(c),bp=LANG_BCP47[l||'en']||'en-US',v=speechSynthesis.getVoices();u.voice=v.find(x=>x.lang==='en-IN')||v.find(x=>x.lang.startsWith(bp.split('-')[0]))||null;u.lang=bp==='en-US'?'en-IN':bp;u.rate=1;u.onend=()=>{currentPlayingGroupId=null;usingFallback=false;if(b){b.textContent='🎧 Listen';b.className='listen-btn';b.disabled=false}};if(b){b.textContent='⏸ Pause';b.className='listen-btn playing';b.disabled=false}speechSynthesis.speak(u)}
+
+let currentChatId=null,currentChatMessages=[];const bubbleRawText={};
+function saveCurrentChat(){if(!currentChatMessages.length)return;const c=JSON.parse(localStorage.getItem('vedant_chats')||'[]'),i=currentChatId?c.findIndex(x=>x.id===currentChatId):-1,t=currentChatMessages[0]?.content?.slice(0,55)||'Chat',ch={id:currentChatId||('chat-'+Date.now()),title:t,messages:currentChatMessages,updatedAt:Date.now()};if(!currentChatId)currentChatId=ch.id;if(i>=0)c[i]=ch;else c.unshift(ch);if(c.length>30)c.splice(30);localStorage.setItem('vedant_chats',JSON.stringify(c));renderChatHistory()}
+function renderChatHistory(){const c=JSON.parse(localStorage.getItem('vedant_chats')||'[]'),e=document.getElementById('chatHistoryList');if(!c.length){e.innerHTML='<div class="chat-history-empty">No saved chats yet.<br>Start a conversation!</div>';return}e.innerHTML=c.map(x=>{const a=timeAgo(x.updatedAt),ac=x.id===currentChatId?' active-chat':'';return`<div class="chat-item${ac}" onclick="loadChat('${x.id}')"><span class="chat-item-icon">💬</span><div class="chat-item-info"><div class="chat-item-title">${escapeHtml(x.title)}</div><div class="chat-item-time">${a}</div></div><button class="chat-item-del" onclick="event.stopPropagation();deleteChat('${x.id}')" title="Delete">✕</button></div>`}).join('')}
+function loadChat(id){const c=JSON.parse(localStorage.getItem('vedant_chats')||'[]'),ch=c.find(x=>x.id===id);if(!ch)return;saveCurrentChat();currentChatId=id;currentChatMessages=ch.messages;const co=document.getElementById('messagesContainer');co.querySelectorAll('.message-group,.typing-indicator').forEach(e=>e.remove());document.getElementById('welcomeScreen').style.display='none';ch.messages.forEach(m=>{const d=document.createElement('div');d.className='message-group';if(m.role==='user')d.innerHTML=`<div class="message-row user"><div class="avatar user">👤</div><div class="bubble user">${escapeHtml(m.content)}<div class="bubble-meta"><span class="time-label">${m.time||''}</span></div></div></div>`;else d.innerHTML=`<div class="message-row bot"><div class="avatar bot">🕉</div><div class="bubble bot"><span>${renderMarkdown(escapeHtml(m.content))}</span><div class="bubble-meta"><span class="lang-badge">🌐 ${m.langName||'English'}</span><span class="time-label">${m.time||''}</span></div></div></div>`;co.appendChild(d)});scrollToBottom();renderChatHistory()}
+function deleteChat(id){let c=JSON.parse(localStorage.getItem('vedant_chats')||'[]');c=c.filter(x=>x.id!==id);localStorage.setItem('vedant_chats',JSON.stringify(c));if(currentChatId===id){currentChatId=null;currentChatMessages=[]}renderChatHistory();showToast('Chat deleted','🗑️')}
+function exportCurrentChat(){if(!currentChatMessages.length){showToast('No chat to export','⚠️');return}const l=['VEDANT AI — Chat Export','='.repeat(40),''];currentChatMessages.forEach(m=>{l.push(`[${m.role==='user'?'You':'Vedant AI'}] ${m.time||''}`);l.push(m.content);l.push('')});const b=new Blob([l.join('\n')],{type:'text/plain'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`vedant-chat-${new Date().toISOString().slice(0,10)}.txt`;a.click();URL.revokeObjectURL(a.href);showToast('Chat exported','↓')}
+function timeAgo(ts){const d=Date.now()-ts;if(d<6e4)return'just now';if(d<36e5)return Math.floor(d/6e4)+'m ago';if(d<864e5)return Math.floor(d/36e5)+'h ago';return Math.floor(d/864e5)+'d ago'}
+
+async function connectWallet() {
+  if (typeof window.ethereum !== 'undefined') {
+    try {
+      console.log("Attempting to connect to MetaMask...");
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const account = accounts[0];
+
+      // Ethers v5 Provider
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+
+      // CORRECTED Chain ID for Sphinx 1.X (8082 decimal = 0x1f92 hex)
+      const targetChainId = '0x1f92'; 
+
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: targetChainId }],
+        });
+      } catch (switchError) {
+        // If network is not added to MetaMask, add it
+        if (switchError.code === 4902) {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: targetChainId,
+              chainName: 'Shardeum Sphinx 1.X',
+              rpcUrls: ['https://sphinx.shardeum.org/'],
+              nativeCurrency: { name: 'SHM', symbol: 'SHM', decimals: 18 },
+              blockExplorerUrls: ['https://explorer-sphinx.shardeum.org/']
+            }]
+          });
+        }
+      }
+
+      // Update UI elements
+      document.getElementById('walletAddress').textContent = `Connected: ${account.substring(0, 6)}...${account.substring(38)}`;
+      document.getElementById('connectWalletBtn').innerHTML = "✅ Connected";
+
+    } catch (error) {
+      console.error("User rejected the connection or error occurred:", error);
+      alert("Connection failed. Check console for details.");
+    }
+  } else {
+    alert("MetaMask not found! Please install the MetaMask extension.");
+    window.open('https://metamask.io/download/', '_blank');
+  }
+}
+
+checkHealth();loadSources();displayVerseOfDay();initVoice();renderChatHistory();document.getElementById('messageInput').focus();
+</script>
+</body>
+</html>
+
+# --- API ENDPOINT ---
+
+@app.get("/ask")
+async def ask_vedas(query: str):
+    # This is where your LLM (Gemini/OpenAI) would integrate later.
+    # For now, it returns a structured mock response.
+    return {
+        "answer": f"Reflecting on '{query}'... According to the curated Vedic knowledge base, this inquiry aligns with the principles of Dharma. [Verified on Shardeum]",
+        "status": "success"
+    }
+
+if _name_ == "_main_":
+    uvicorn.run(app, host="127.0.0.1", port=8000)

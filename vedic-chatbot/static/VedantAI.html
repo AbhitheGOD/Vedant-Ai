@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VedantAI | Desktop Command Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --saffron: #FF9933; --gold: #D4AF37; --deep-bg: #08080a; }
+        body { background-color: var(--deep-bg); font-family: 'Inter', sans-serif; color: #e2e8f0; height: 100vh; overflow: hidden; margin: 0; }
+        .cinzel { font-family: 'Cinzel', serif; }
+        .mesh-gradient {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(at 0% 0%, rgba(255, 153, 51, 0.1) 0px, transparent 50%),
+                        radial-gradient(at 100% 100%, rgba(212, 175, 55, 0.05) 0px, transparent 50%);
+            z-index: -1;
+        }
+        .sidebar { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
+        .chat-bubble-bot { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 153, 51, 0.2); }
+        .status-pulse { width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block; box-shadow: 0 0 10px #10b981; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 153, 51, 0.2); border-radius: 10px; }
+    </style>
+</head>
+<body class="flex">
+
+    <div class="mesh-gradient"></div>
+
+    <aside class="sidebar w-72 flex flex-col p-6 hidden lg:flex">
+        <div class="flex items-center gap-3 mb-10 cursor-pointer" onclick="location.reload()">
+            <div class="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-600/40">
+                <span class="cinzel font-bold text-xl text-white">V</span>
+            </div>
+            <h1 class="cinzel text-xl font-bold tracking-widest text-orange-400">VEDANT AI</h1>
+        </div>
+
+        <nav class="flex-1 space-y-6">
+            <div>
+                <p class="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-3">Knowledge Library</p>
+                <div id="history-list" class="space-y-1">
+                    <button onclick="loadTopic('The Concept of Brahman')" class="w-full text-left p-3 text-sm rounded-lg hover:bg-orange-500/10 hover:text-orange-400 transition-all">✨ Brahman & Soul</button>
